@@ -105,7 +105,7 @@ module Main where
     return $ SR.shuffle' list (length list) gen
 
   seed :: IO Int
-  seed = round <$>getPOSIXTime
+  seed = round <$> getPOSIXTime
 
   syllables :: [String]
   syllables = ["ЛУ","ЛО","ЛА","ЛЭ","ЛЫ","МУ","МО","МА","МЭ","МЫ","НУ","НО","НА",
