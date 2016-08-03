@@ -1,0 +1,43 @@
+name:                syllables-table
+version:             0.1.0.0
+synopsis:            Initial project template from stack
+description:         Please see README.md
+homepage:            https://github.com/wapxmas/syllables-table#readme
+license:             BSD3
+license-file:        LICENSE
+author:              Sergey N. Yashin
+maintainer:          yashin.sergey@gmail.com
+copyright:           2016 Sergey N. Yashin
+category:            Web
+build-type:          Simple
+-- extra-source-files:
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     Lib
+  build-depends:       base >= 4.7 && < 5
+  ghc-options:         -W -Wall
+  default-language:    Haskell2010
+
+executable syllables-table-exe
+  hs-source-dirs:      app
+  main-is:             Main.hs
+  ghc-options:         -W -Wall -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , syllables-table
+                     , shakespeare >= 2.0 && < 2.2
+                     , blaze-html >= 0.8 && < 0.10
+                     , random >= 1.1 && < 1.3
+                     , time >= 1.5 && < 1.7
+                     , random-shuffle >= 0.0 && < 0.2
+                     , text >= 1.2 && < 1.4
+                     , bytestring >= 0.10 && < 0.12
+                     , split >= 0.2 && < 0.4
+                     , directory >= 1.2 && < 1.4
+                     , process >= 1.2 && < 1.4
+  default-language:    Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/wapxmas/syllables-table
