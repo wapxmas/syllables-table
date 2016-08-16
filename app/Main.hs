@@ -6,10 +6,6 @@ module Main where
   import Text.Lucius
   import Text.Blaze.Html (preEscapedToHtml)
   import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
-  import qualified Data.Text as T
-  import qualified Data.Text.Lazy as TL
-  import qualified Data.Text.IO as TIO
-  import qualified Data.Text.Lazy.Encoding as TLE
   import qualified Data.ByteString.Lazy as BSL
   import qualified System.Random as SR
   import qualified System.Random.Shuffle as SR
@@ -20,41 +16,43 @@ module Main where
   import Control.Exception
   import Data.Monoid
   import qualified System.Process as SP
+  import qualified Data.HashSet as S
 
-  type SyllablesList = [[String]]
-
-  halfRowSize :: Int
-  halfRowSize = 5
-
-  fullRow :: Int
-  fullRow = halfRowSize * 2
+  type TableList = [[String]]
+  type HalfRowSize = Int
+  type WordsList = [String]
 
   main :: IO ()
-  main = do
-    sbs <- shuffledList syllables
+  -- main = mkRandomTable wordsList1 2 "words.html" "words.pdf"
+  main = mkRandomTable syllables 5 "syllables.html" "syllables.pdf"
+
+  mkRandomTable :: WordsList -> HalfRowSize -> FilePath -> FilePath -> IO ()
+  mkRandomTable sourceList halfRowSize dumpHtmlFile dumpPdfFile = do
+    let
+      sourceListUni :: WordsList
+      sourceListUni = let u = S.fromList sourceList in S.toList u
+
+    sbs <- shuffledList sourceListUni
 
     let
       sl :: Int
       sl = length sbs
 
-      list :: SyllablesList
+      fullRow :: Int
+      fullRow = halfRowSize * 2
+
+      list :: TableList
       list = DLS.chunksOf fullRow $ sbs ++ replicate (fullRow - sl `mod` fullRow) []
 
-      html :: T.Text
-      html = bsToText . renderHtml $ content list
+      html :: BSL.ByteString
+      html = renderHtml $ content list halfRowSize
 
     rmFile dumpHtmlFile
     rmFile dumpPdfFile
 
-    TIO.writeFile dumpHtmlFile html
+    BSL.writeFile dumpHtmlFile html
     ignoreEx $ SP.callCommand ("wkhtmltopdf " <> dumpHtmlFile <> " " <> dumpPdfFile)
 
-
-  dumpHtmlFile :: FilePath
-  dumpHtmlFile = "syllables.html"
-
-  dumpPdfFile :: FilePath
-  dumpPdfFile = "syllables.pdf"
 
   rmFile :: FilePath -> IO ()
   rmFile fp = ignoreEx $ SD.removeFile fp
@@ -62,11 +60,8 @@ module Main where
   ignoreEx :: IO () -> IO ()
   ignoreEx act = void (try act :: IO (Either SomeException ()))
 
-  bsToText :: BSL.ByteString -> T.Text
-  bsToText = TL.toStrict . TLE.decodeUtf8
-
-  content :: SyllablesList -> Html
-  content list = [shamlet|
+  content :: TableList -> HalfRowSize -> Html
+  content list halfRowSize = [shamlet|
   $doctype 5
   <html>
     <head>
@@ -107,7 +102,17 @@ module Main where
   seed :: IO Int
   seed = round <$> getPOSIXTime
 
-  syllables :: [String]
+  wordsList1 :: WordsList
+  wordsList1 = ["ЛАПКА", "ТОЛПА", "СТОПА", "ЛАМПА", "КНОПКА", "РУКА", "НОГА", "ЛИЦО",
+    "ГОЛОВА", "НОС", "ГЛАЗА", "ПАЛЬЦЫ", "РОТ", "ВОЛОСЫ", "ПЯТКИ", "КОЛЕНИ", "ЩЕКИ",
+    "КИСТЬ", "ГУБЫ", "ГРУДЬ", "СПИНА", "ШЕЯ", "ЖИВОТ", "ЛОБ", "ЗУБЫ", "БРОВИ", "ЯЗЫК",
+    "БЕДРО", "ПЛЕЧО", "СТУПНЯ", "УХО", "ПУПОК", "ЗАТЫЛОК", "ЛОКОТЬ", "РЕСНИЦЫ", "ОЧКИ",
+    "ПИЛА", "РАК", "СЫР", "ТОРТ", "ЧАСЫ", "ШАРИК", "ДЕНЬ", "ГЛАЗ", "СТОЛ", "НОЧЬ",
+    "ГУСЬ", "ГРУЗ", "СТУК", "ТРЮК", "КРЮК", "ВРАЧ", "ГРОМ", "ПУСК", "ДЕД", "ДОМ",
+    "КАША", "МАМА", "МЯЧ", "ВОДА", "КУБИК", "КУКЛА", "РУЧКА", "СУМКА", "МАЛЫШ",
+    "ПОЕЗД", "ВАГОН", "ТУМАН", "РЕДИС", "РУЖЬЁ", "КАТОК", "МИСКА", "ВОЙНА", "МОТОР"]
+
+  syllables :: WordsList
   syllables = ["ЛУ","ЛО","ЛА","ЛЭ","ЛЫ","МУ","МО","МА","МЭ","МЫ","НУ","НО","НА",
     "НЭ","НЫ","РУ","РО","РА","РЭ","РЫ","ВУ","ВО","ВА","ВЭ","ВЫ","ФУ","ФО","ФА",
     "ФЭ","ФЫ","ЗУ","ЗО","ЗА","ЗЭ","ЗЫ","СУ","СО","СА","СЭ","СЫ","БУ","БО","БА",
